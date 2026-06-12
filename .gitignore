@@ -1,0 +1,23 @@
+# Rust - Bloqueia binários compilados e dependências baixadas
+/target/
+**/*.rs.bk
+Cargo.lock
+
+# Python - Bloqueia ambientes virtuais e caches de execução
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+
+# Dados da Simulação - Bloqueia os inputs/outputs pesados (evita estourar o limite do Git)
+/data/input/
+/data/output/
+*.json
+*.png
+
+# Arquivos do sistema operacional
+.DS_Store
+Thumbs.db
