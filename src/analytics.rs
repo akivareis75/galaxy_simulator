@@ -1,5 +1,6 @@
 use crate::physics::{Particle, G};
 use nalgebra::Vector3;
+use rayon::prelude::*;
 
 pub struct DiagnosticMetrics {
     pub kinetic_energy: f64,
@@ -8,33 +9,25 @@ pub struct DiagnosticMetrics {
     pub angular_momentum: Vector3<f64>,
 }
 
-// Calcula e retorna o estado de conservação atual do sistema N-Corpos
 pub fn evaluate_conservation(particles: &[Particle], epsilon: f64) -> DiagnosticMetrics {
-    let mut kinetic = 0.0;
-    let mut potential = 0.0;
-    let mut total_l = Vector3::zeros();
-    let n = particles.len();
+    let epsilon_sq = epsilon.powi(2);
 
-    for i in 0..n {
-        let p_i = &particles[i];
-        
-        // 1. Energia Cinética: K = 0.5 * m * v^2
-        kinetic += 0.5 * p_i.mass * p_i.velocity.norm_squared();
+    // Mapeamento e redução paralela para Energia Cinética e Momento Angular
+    let (kinetic, total_l) = particles.par_iter().map(|p| {
+        let k = 0.5 * p.mass * p.velocity.norm_squared();
+        let l = p.mass * p.position.cross(&p.velocity);
+        (k, l)
+    }).reduce(|| (0.0, Vector3::zeros()), |a, b| (a.0 + b.0, a.1 + b.1));
 
-        // 2. Momento Angular: L = r x p = m * (r x v)
-        let angular_momentum_i = p_i.mass * p_i.position.cross(&p_i.velocity);
-        total_l += angular_momentum_i;
-
-        // 3. Energia Potencial Gravitacional (Interação de Pares Modificada)
-        for j in (i + 1)..n {
-            let p_j = &particles[j];
-            let r = (p_i.position - p_j.position).norm();
-            
-            // U = -G * m_i * m_j / sqrt(r^2 + eps^2)
-            let u_ij = -G * p_i.mass * p_j.mass / (r.powi(2) + epsilon.powi(2)).sqrt();
-            potential += u_ij;
+    // Cálculo da Energia Potencial Gravitacional em paralelo
+    let potential: f64 = particles.par_iter().enumerate().map(|(i, p_i)| {
+        let mut u_i = 0.0;
+        for p_j in particles.iter().skip(i + 1) {
+            let r_sq = (p_i.position - p_j.position).norm_squared();
+            u_i += -G * p_i.mass * p_j.mass / (r_sq + epsilon_sq).sqrt();
         }
-    }
+        u_i
+    }).sum();
 
     DiagnosticMetrics {
         kinetic_energy: kinetic,

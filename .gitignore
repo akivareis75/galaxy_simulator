@@ -2,6 +2,7 @@
 /target/
 **/*.rs.bk
 Cargo.lock
+README.md
 
 # Python - Bloqueia ambientes virtuais e caches de execução
 __pycache__/
