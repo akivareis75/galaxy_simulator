@@ -8,7 +8,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!(" Simulador Galáctico - Camada 2 (10^4 Partículas)");
     println!("=======================================================");
 
-    let input_path = Path::new("/Users/akivareis/tmp/galaxy_simulator/data/input/hernquist_10k_ic.json");
+    //let input_path = Path::new("/Users/akivareis/tmp/galaxy_simulator/data/input/hernquist_10k_ic.json");
+    // Altere esta linha no seu main.rs
+    let input_path = Path::new("/Users/akivareis/tmp/galaxy_simulator/data/input/hernquist_20k_ic.json");
     let output_dir = Path::new("/Users/akivareis/tmp/galaxy_simulator/data/output");
 
     if !input_path.exists() {
