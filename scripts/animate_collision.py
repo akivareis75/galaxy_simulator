@@ -6,13 +6,28 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 
+def load_config(config_path="config.json"):
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(
+            f"Arquivo config não encontrado: {config_path}")
+    with open(config_path, "r") as f:
+        return json.load(f)
+
+
 def generate_animation():
-    data_dir = "/Users/akivareis/tmp/galaxy_simulator/data/output"
-    # Adicionando validação para garantir que os arquivos sejam lidos na ordem correta
+    # 1. Busca o diretório de saída parametrizado no config.json
+    try:
+        config = load_config()
+        data_dir = config.get("output_dir", "./snapshots")
+    except FileNotFoundError:
+        print(
+            "[ERRO] Arquivo config.json não encontrado. Execute a partir da raiz do projeto.")
+        return
+
     files = sorted(glob.glob(os.path.join(data_dir, "snapshot_*.json")))
 
     if not files:
-        print("[ERRO] Nenhum snapshot encontrado em data/output/.")
+        print(f"[ERRO] Nenhum snapshot encontrado em: {data_dir}")
         return
 
     print(f"[{len(files)} snapshots encontrados] Preparando a renderização visual...")
@@ -20,6 +35,7 @@ def generate_animation():
     fig, ax = plt.subplots(figsize=(8, 8), facecolor='black')
     ax.set_facecolor('black')
 
+    # Ajuste o limite espacial da visualização se a galáxia expandir muito
     lim = 15.0
     ax.set_xlim(-lim, lim)
     ax.set_ylim(-lim, lim)
@@ -33,12 +49,18 @@ def generate_animation():
     def update(frame):
         file = files[frame]
         try:
-            with open(file, 'r') as f:
-                data = json.load(f)
+            # 2. Extrai o número do passo diretamente do nome do arquivo
+            filename = os.path.basename(file)
+            step_str = filename.replace("snapshot_", "").replace(".json", "")
+            step = int(step_str)
 
-            pos = np.array([p['position'] for p in data['particles']])
+            # 3. Lê o array plano de partículas exportado pelo Rust
+            with open(file, 'r') as f:
+                particles = json.load(f)
+
+            pos = np.array([p['position'] for p in particles])
             scatter.set_offsets(pos[:, :2])
-            title.set_text(f"Minor Merger - Tempo: {data['time']:.3f} Gyr")
+            title.set_text(f"Minor Merger - Passo: {step}")
         except Exception as e:
             print(f"Erro ao processar o frame {frame}: {e}")
 
@@ -47,7 +69,6 @@ def generate_animation():
 
         return scatter, title
 
-    # blit=False força o Mac a redesenhar a tela inteira, evitando erros de tela preta/branca
     ani = animation.FuncAnimation(
         fig, update, frames=len(files), interval=50, blit=False)
 
@@ -58,8 +79,7 @@ def generate_animation():
         ani.save(out_path, writer='pillow', fps=20)
         print(f"\nSucesso! Simulação visual salva em: {out_path}")
     except Exception as e:
-        print(
-            f"\n[ERRO FATAL] Falha ao tentar salvar o GIF. Detalhes do erro: {e}")
+        print(f"\n[ERRO FATAL] Falha ao tentar salvar o GIF. Detalhes: {e}")
 
 
 if __name__ == "__main__":
