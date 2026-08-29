@@ -39,5 +39,12 @@ galaxy_simulator/
 
 1. Aproximação Espacial em Árvore (Barnes-Hut $O(N \log N)$)
 
-O loop clássico de força bruta $O(N^2)$ foi substituído por uma Octree de Barnes-Hut. O espaço tridimensional é recursivamente particionado em octantes. Se a razão entre o tamanho de um nó ($s$) e a distância até a partícula ($d$) for menor que o limite de abertura $\theta$, o aglomerado de partículas daquela região é aproximado como um único centro de massa.A árvore é construída utilizando alocação contígua (Arena Allocation) para evitar overhead de ponteiros e proteger contra stack overflows de galáxias densas.2. Passo Temporal Adaptativo (Courant-Friedrichs-Lewy / CFL)O avanço do tempo deixou de ser constante. A cada iteração espacial, o motor captura o pico de aceleração gravitacional do sistema e calcula o próximo passo de tempo ($\Delta t$) com base na tolerância $\eta$. Isso previne saltos espaciais irreais no núcleo denso (perfil de Hernquist) sem comprometer o avanço temporal das partículas nas bordas periféricas.
+O loop clássico de força bruta $O(N^2)$ foi substituído por uma Octree de Barnes-Hut. O espaço tridimensional é recursivamente particionado em octantes.
+Se a razão entre o tamanho de um nó ($s$) e a distância até a partícula ($d$) for menor que o limite de abertura $\theta$, o aglomerado de partículas daquela região é aproximado
+como um único centro de massa.A árvore é construída utilizando alocação contígua (Arena Allocation) para evitar overhead de ponteiros e proteger contra stack overflows de galáxias densas.
+
+2. Passo Temporal Adaptativo (Courant-Friedrichs-Lewy / CFL)
+
+O avanço do tempo deixou de ser constante. A cada iteração espacial, o motor captura o pico de aceleração gravitacional do sistema e calcula o próximo passo de tempo ($\Delta t$) com base na tolerância $\eta$.
+Isso previne saltos espaciais irreais no núcleo denso (perfil de Hernquist) sem comprometer o avanço temporal das partículas nas bordas periféricas.
 
